@@ -1,0 +1,18 @@
+{
+  "name": "claude-clip-command",
+  "metadata": {
+    "description": "Claude Code mod: copies a command the model asks you to run (a code block starting with \"! \") to the clipboard, places it in the empty prompt, and runs it when you press Enter on it."
+  },
+  "owner": {
+    "name": "i-noma-ru"
+  },
+  "plugins": [
+    {
+      "name": "clip-command",
+      "description": "When a reply contains a command for the user to run (a code block starting with \"! \"), copies it to the clipboard and places it in the prompt input if empty. Pressing Enter on that exact text runs it and feeds the output back to the model.",
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/i-noma-ru/claude-clip-command"
+    }
+  ]
+}
