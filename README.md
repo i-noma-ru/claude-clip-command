@@ -1,12 +1,28 @@
 # claude-clip-command
 
-A small plugin ("mod") for Claude Code's terminal UI. When a reply contains a command for the user to run (a code block starting with `! `), it copies the command to the clipboard and places it in the prompt input if the input is empty. Pressing Enter on that exact text runs it and feeds the output back to the model.
+A small plugin ("mod") for Claude Code's terminal UI that copies the command Claude asks you to run and places it in the prompt input.
+When a reply ends with a command for you to run (a code block starting with `! `), you normally select it, copy it and paste it by hand.
+This plugin copies that block to the clipboard and, if the input is empty, places it there. Press Enter on it and the plugin runs it and feeds the output back to the model.
 
 日本語の説明は [README.ja.md](README.ja.md) にあります。
 
 In-app messages are in Japanese.
 
-## Status
+## When to use
+
+- When Claude keeps ending replies with a command for you to run and you copy and paste it by hand each time.
+- When you want the output of that command to go back to the model without pasting it yourself.
+- When Claude suggests a one-line slash command such as `/rename my-session` and you want it ready in the input instead of retyping it.
+
+Not for you if you are on Windows (untested), run Claude non-interactively (`claude -p`, where there is no prompt input to fill), or do not want a command written by the model to run when you press Enter.
+
+## What it looks like
+
+Before: a reply ends with a code block starting with `! `. You select the text, copy it, paste it into the input and press Enter.
+
+After: a toast reads `⌨️ 実行するコマンドを入力欄に置きました（Enter で実行）: …` and the same text is already in the input. Press Enter and the plugin runs it; the submitted text is replaced with `[MOD clip-command] ran: $ …` followed by the exit code, seconds, stdout and stderr, so the model reads the output. If you were typing something, the toast reads `📋 実行するコマンドをクリップボードへ入れました（Cmd+V → Enter）: …` instead and your draft is left alone.
+
+## Requirements
 
 - Built on Claude Code's plugin hooks ("mods") API, which is in early access and may change between versions.
 - Developed and tested with Claude Code 2.1.287 to 2.1.289 on macOS.
