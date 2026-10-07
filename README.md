@@ -43,7 +43,7 @@ Or for one session only, from a clone:
 claude --plugin-dir /path/to/claude-clip-command
 ```
 
-To load a clone in every session, place this folder inside a directory listed in the `CLAUDE_CODE_PLUGIN_DIRS` environment variable. That variable worked in 2.1.288 but does not appear in `claude --help`, so treat it as subject to change.
+To load a clone in every session, add it to the `CLAUDE_CODE_PLUGIN_DIRS` environment variable: a `:`-separated list where each entry is either a plugin folder itself or a folder that contains plugin folders (both confirmed in 2.1.292). The variable does not appear in `claude --help`, so treat it as subject to change.
 
 ## How it works
 
