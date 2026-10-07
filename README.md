@@ -68,6 +68,18 @@ Text placed by `prompt.fill` is plain text; Claude Code does not switch to shell
 
 **Security note:** the command text is written by the model. The plugin never runs anything on its own; it runs the command only after you see it in the input and press Enter. Read the command before pressing Enter, the same as you would before pasting a command into a terminal. If you do not want this behaviour, do not install this plugin, or clear the input instead of pressing Enter.
 
+## What the plugin reads, writes, runs, and submits
+
+This section lists everything the plugin touches, for review. Nothing leaves the machine, and the plugin never calls the model.
+
+**What it reads:** the text of the reply that just finished (`turn.complete`), to find a code block starting with `! `; the current text of the prompt input, to check that it is empty; the text of a submitted prompt and where the submit came from; and the environment variable `SHELL`.
+
+**What it writes:** the found command to the system clipboard (through Claude Code's `$.ui.copy`), and the same command into the prompt input, only when the input is empty (`$.prompt.fill`). Both are visible to you before anything else happens.
+
+**What it runs:** `$SHELL -lc "<the command without the leading ! >"` in the session's working directory, with a 10-minute timeout. This happens only when the submitted text is exactly the command the plugin placed in the input and the submit came from you pressing Enter in the prompt input. The same text is never run twice. The command text comes from the model's reply, so read it before pressing Enter.
+
+**What it submits:** when it runs a command, it replaces the text you submitted with the result, so the model reads the output instead of the command. The replacement is: a heading `[MOD clip-command] ran: $ <command>`, the exit code, seconds, and working directory, then stdout and stderr in fenced blocks (each truncated at 4 MiB). Nothing else is ever submitted or added to a prompt.
+
 ## Tests
 
 ```

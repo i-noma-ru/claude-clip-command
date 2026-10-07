@@ -1,5 +1,13 @@
 {
   "name": "clip-command",
-  "version": "0.3.0",
-  "description": "利用者に実行を頼むコマンド（「! 」で始まるコードブロック）をクリップボードへ入れ、入力欄が空なら下書きとして置き、その文がそのまま Enter で来たら実行して結果を送信文にする"
+  "version": "0.3.1",
+  "description": "When a reply contains a command for you to run (a code block starting with \"! \"), copies it to the clipboard and places it in the empty prompt input. Pressing Enter on that exact text runs it and sends the output back to the model.",
+  "author": {
+    "name": "i-noma-ru",
+    "url": "https://github.com/i-noma-ru"
+  },
+  "homepage": "https://github.com/i-noma-ru/claude-clip-command",
+  "repository": "https://github.com/i-noma-ru/claude-clip-command",
+  "license": "MIT",
+  "keywords": ["claude-code", "mod", "clipboard", "shell", "ui"]
 }
