@@ -150,6 +150,75 @@ test('入力欄が受け取らなかった（ダイアログ中など）とき�
   ])
 })
 
+// ---- ターンの途中の返答にだけブロックがある（Stop フックの差し戻しでターンが続いたとき） ----
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function stageStep(on: any, answer: string, copied: string[], filled: string[]) {
+  on('turn.step', async function* (_$: unknown, e: { turnId: string; index: number }) {
+    return { turnId: e.turnId, index: e.index, answer, toolUses: [] }
+  })
+  on('turn.complete', ($: unknown, e: { answer: string }) => ({ text: e.answer }))
+  on('ui.copy', ($: unknown, e: { text: string }) => {
+    copied.push(e.text)
+
+    return { value: { isCopied: true } }
+  })
+  on('prompt.read', () => ({ value: { text: '', cursor: 0 } }))
+  on('prompt.fill', ($: unknown, e: { text: string }) => {
+    filled.push(e.text)
+
+    return { isFilled: true }
+  })
+  on('ui.toast', () => ({ value: undefined }))
+}
+
+async function step($: Parameters<Parameters<typeof test>[1]>[0], turnId: string, index: number): Promise<void> {
+  const stream = $.turn.step({ turnId, index, model: 'm', messageCount: 10 })
+
+  for await (const _chunk of stream) {
+    // チャンクは使わない
+  }
+}
+
+test('最後の返答にブロックが無くても、同じターンの途中の返答にあれば置く', async ($, on) => {
+  const copied: string[] = []
+  const filled: string[] = []
+
+  stageStep(on, ASK, copied, filled)
+
+  await step($, 't1', 0)
+  await $.turn.complete({ durationMs: 1, isAborted: false, reason: 'answer', answer: '別に打つ必要はありません。', turnId: 't1' })
+
+  expect(copied).toEqual([PLACED])
+  expect(filled).toEqual([PLACED])
+})
+
+test('途中の返答のブロックは別のターンには持ち越さない', async ($, on) => {
+  const copied: string[] = []
+  const filled: string[] = []
+
+  stageStep(on, ASK, copied, filled)
+
+  await step($, 't1', 0)
+  await $.turn.complete({ durationMs: 1, isAborted: false, reason: 'answer', answer: '完了しました。', turnId: 't2' })
+
+  expect(copied).toEqual([])
+  expect(filled).toEqual([])
+})
+
+test('最後の返答にブロックがあれば、途中の返答より最後を優先する', async ($, on) => {
+  const copied: string[] = []
+  const filled: string[] = []
+
+  stageStep(on, ASK, copied, filled)
+
+  await step($, 't1', 0)
+  await $.turn.complete({ durationMs: 1, isAborted: false, reason: 'answer', answer: '```\n! ls\n```', turnId: 't1' })
+
+  expect(copied).toEqual(['! ls'])
+  expect(filled).toEqual(['! ls'])
+})
+
 test('コマンドが無い返答とサブエージェントの返答ではコピーしない', async ($, on) => {
   const copied: string[] = []
 

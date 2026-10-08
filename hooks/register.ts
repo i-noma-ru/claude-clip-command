@@ -10,6 +10,30 @@ export const register: Register = on => {
   let last = ''
   // 入力欄に置いた「! 」コマンド。利用者がそのまま Enter したときだけ MOD が実行する
   let placed = ''
+  // 同じターンの途中の返答で最後に見たコマンドと、そのターンの id。
+  // Stop フック（番犬）の差し戻しでターンが続くと、ブロックを書いた返答は「最後の返答」でなくなるので、ここで覚えておく
+  let stepCommand = ''
+  let stepTurn = ''
+
+  on('turn.step', async function* ($, e, next) {
+    const result = yield* next(e)
+
+    // サブエージェントの返答は利用者への依頼ではない
+    if (e.agentId === undefined) {
+      if (e.turnId !== stepTurn) {
+        stepTurn = e.turnId
+        stepCommand = ''
+      }
+
+      const found = findUserCommand(result.answer)
+
+      if (found !== '') {
+        stepCommand = found
+      }
+    }
+
+    return result
+  })
 
   on('turn.complete', async ($, e, next) => {
     const done = await next(e)
@@ -20,7 +44,15 @@ export const register: Register = on => {
     }
 
     try {
-      const command = findUserCommand(e.answer)
+      // 最後の返答を優先し、無ければ同じターンの途中の返答で見たものを使う（別のターンのものは使わない）
+      let command = findUserCommand(e.answer)
+
+      if (command === '' && e.turnId === stepTurn) {
+        command = stepCommand
+      }
+
+      stepCommand = ''
+      stepTurn = ''
 
       if (command !== '') {
         const isCopied = command !== last && (await $.ui.copy({ text: command })).isCopied
