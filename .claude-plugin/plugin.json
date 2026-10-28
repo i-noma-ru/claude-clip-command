@@ -1,6 +1,6 @@
 {
   "name": "clip-command",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "When a reply contains a command for you to run (a code block starting with \"! \"), copies it to the clipboard and places it in the empty prompt input. Pressing Enter on that exact text runs it and sends the output back to the model.",
   "author": {
     "name": "i-noma-ru",
