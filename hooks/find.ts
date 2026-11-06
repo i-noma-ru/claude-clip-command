@@ -2,7 +2,7 @@ const SHELL_LANGS = ['bash', 'sh', 'zsh', 'shell', 'console', 'text']
 
 /**
  * 中身が「! 」で始まる最初のコードブロックの中身を返す。
- * それが無ければ、1 行のスラッシュコマンド（/rename … など）の最初のブロックを返す。どちらも無ければ ''。
+ * それが無ければ、1 行のスラッシュコマンド（/rename … など・「! /doctor」は「! 」を外す）の最初のブロックを返す。どちらも無ければ ''。
  */
 export function findUserCommand(text: string): string {
   let slash = ''
@@ -16,6 +16,15 @@ export function findUserCommand(text: string): string {
     }
 
     const body = (block[2] ?? '').replace(/\s+$/, '')
+
+    // 「! /doctor」のように「! 」の直後がスラッシュコマンドなら、シェルではなくスラッシュコマンドとして扱う（2026-10-29 実発生）
+    if (!body.includes('\n') && /^! \/[a-z][a-z0-9-]*(\s|$)/.test(body)) {
+      if (slash === '') {
+        slash = body.slice(2)
+      }
+
+      continue
+    }
 
     if (/^! \S/.test(body) && !body.startsWith('! 【')) {
       return body

@@ -33,6 +33,18 @@ test('パスや複数行のブロックはスラッシュコマンドとして�
   expect(findUserCommand('本文に /rename a と書いただけ')).toBe('')
 })
 
+test('「! 」の直後がスラッシュコマンドなら「! 」を外してスラッシュコマンドとして拾う', () => {
+  // 実発生 2026-10-29: 主担当が「! /doctor」と書き、シェルで /doctor を探しに行った
+  expect(findUserCommand('```\n! /doctor\n```')).toBe('/doctor')
+  expect(findUserCommand('```\n! /rename 🌐 x\n```')).toBe('/rename 🌐 x')
+  // パスはシェルのコマンドのまま
+  expect(findUserCommand('```\n! /usr/bin/foo\n```')).toBe('! /usr/bin/foo')
+  // 本物の「! 」ブロックが先（並び順によらない）
+  expect(findUserCommand('```\n! /doctor\n```\n```\n! node a.js\n```')).toBe('! node a.js')
+  // 外すのは 1 行のときだけ（複数行はシェルのコマンドのまま）
+  expect(findUserCommand('```\n! /doctor\n/color\n```')).toBe('! /doctor\n/color')
+})
+
 test('同じコマンドが続いたら、入力欄には毎回置き、クリップボードは上書きしない', async ($, on) => {
   const copied: string[] = []
   const filled: string[] = []
