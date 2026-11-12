@@ -55,6 +55,14 @@ At the end of each turn the plugin looks for the first fenced code block whose b
 
 Blocks with a non-shell language tag (for example `diff`), multi-line slash blocks, and paths such as `/tmp/x` are ignored.
 
+A `! ` block is also skipped when what follows `! ` is a Japanese request sentence rather than a command, so that a request addressed to Claude never lands in the input as a shell command. The plugin looks at the first line and skips the block when any of these holds:
+
+- outside quotes, the line contains a polite request word (`ください`, `下さい`, `お願いします`, `お願いいたします`);
+- outside quotes, the line ends with `。`;
+- the first word starts with a kana or kanji character and contains no `/`.
+
+A skipped block does not stop the search: a later `! ` block with a real command is still picked up. Commands that contain Japanese paths (`! node 資料フォルダ/x.js`) or Japanese text inside quotes (`! git commit -m "…お願いします"`) are treated as commands.
+
 To make this useful, tell the model (for example in `CLAUDE.md`) to write commands that the user must run in a code block starting with `! `.
 
 ### Running the placed command

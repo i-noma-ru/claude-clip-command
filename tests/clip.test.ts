@@ -45,6 +45,37 @@ test('「! 」の直後がスラッシュコマンドなら「! 」を外して�
   expect(findUserCommand('```\n! /doctor\n/color\n```')).toBe('! /doctor\n/color')
 })
 
+test('「! 」が付いた日本語の依頼文は拾わない', () => {
+  // 実発生 2026-11-12: 新しい会話へ送る依頼文に「! 」を付け、シェルの実行として入力欄に置かれた
+  expect(
+    findUserCommand('```\n! Codex 助言の残りの確認（docs/pending-tasks.md の「残り」）をお願いします\n```'),
+  ).toBe('')
+  // 実発生 2026-10-16: 英字のコマンド名のように始まり、文が続く依頼文（Bash モードで command not found になった）
+  expect(
+    findUserCommand(
+      '```\n! skill3-transcription-auditor を「役割: B」で 1 回だけ呼んで、/Users/x/資料フォルダ/034c.tex の番号と問題文を軽く確認してください。修正はしないでください。kantoku-pane の表示確認が目的です。\n```',
+    ),
+  ).toBe('')
+  expect(findUserCommand('```\n! 残りの確認を続けてください。\n```')).toBe('')
+  expect(findUserCommand('```\n! 番人のフックの作成を引き継ぎます\n```')).toBe('')
+  // 依頼文のブロックは飛ばし、後ろにある本物のコマンドを拾う
+  expect(findUserCommand('```\n! 残りの確認をお願いします\n```\n```\n! node a.js\n```')).toBe('! node a.js')
+  // 日本語のパス・引数を含むコマンドは拾う
+  expect(findUserCommand('```\n! node 資料フォルダ/scripts/deploy_userlevel.js --check\n```')).toBe(
+    '! node 資料フォルダ/scripts/deploy_userlevel.js --check',
+  )
+  expect(findUserCommand('```\n! git -C 資料フォルダ commit -m "記録をお願いします"\n```')).toBe(
+    '! git -C 資料フォルダ commit -m "記録をお願いします"',
+  )
+  // 日本語を含むパスで始まるコマンドも拾う（過去 60 日の会話記録に 3 種類あった）
+  expect(findUserCommand('```\n! /Users/me/資料フォルダ/scripts/render_skill1_jobs pp41\n```')).toBe(
+    '! /Users/me/資料フォルダ/scripts/render_skill1_jobs pp41',
+  )
+  expect(findUserCommand('```\n! 資料フォルダ/scripts/render_skill1_jobs pp41\n```')).toBe(
+    '! 資料フォルダ/scripts/render_skill1_jobs pp41',
+  )
+})
+
 test('同じコマンドが続いたら、入力欄には毎回置き、クリップボードは上書きしない', async ($, on) => {
   const copied: string[] = []
   const filled: string[] = []
